@@ -84,7 +84,7 @@ class GameManager:
                     continue
                 
                 distance = entity.get_distance(self.local_player.pos)
-                if distance < 6000: 
+                if distance < 2000: 
                     entity.update(lite=False) # Догружаем velocity, shots_fired
                     entity.update_bones(bone_indices=[6, 5, 4, 2, 0, 8, 9, 10, 13, 14, 15, 22, 23, 24, 25, 26, 27])
                 else:

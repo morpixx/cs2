@@ -132,21 +132,17 @@ class Entity:
                 self.game_scene_node = self._ST_QWORD.unpack_from(buffer, Offsets.m_pGameSceneNode)[0]
                 
                 if self.game_scene_node:
-                    # Читаем ноду
-                    node_buffer = self.mem.read_bytes(self.game_scene_node, 0x220)
-                    if node_buffer:
-                        if Offsets.m_bDormant < len(node_buffer):
-                            self.dormant = self._ST_BOOL.unpack_from(node_buffer, Offsets.m_bDormant)[0]
-                        
-                        if Offsets.m_modelState + 8 <= len(node_buffer):
-                            model_state_addr = self._ST_QWORD.unpack_from(node_buffer, Offsets.m_modelState)[0]
-                            if model_state_addr:
-                                # Читаем указатель на кости (0x80 offset fix)
-                                self.bone_matrix = self.mem.read_ptr(model_state_addr + 0x80)
-                            else:
-                                self.bone_matrix = 0
+                    dormant_tuple = self.mem.read_struct(self.game_scene_node + Offsets.m_bDormant, '<?')
+                    self.dormant = dormant_tuple[0] if dormant_tuple else True
+                    
+                    if not self.dormant:
+                        bone_matrix_ptr_addr = self.game_scene_node + Offsets.m_modelState + 0x80
+                        self.bone_matrix = self.mem.read_ptr(bone_matrix_ptr_addr)
                     else:
-                        self.dormant = True
+                        self.bone_matrix = 0
+                else:
+                    self.dormant = True
+                    self.bone_matrix = 0 # Убедимся, что адрес сброшен
             
             self.bone_cache = {} # Сбрасываем кэш костей на новый тик
             return True
